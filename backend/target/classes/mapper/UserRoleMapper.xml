@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usermanagement.mapper.UserRoleMapper">
+
+    <resultMap id="UserRoleMap" type="com.example.usermanagement.entity.UserRole">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="roleId" column="role_id"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="UserRoleMap">
+        SELECT id, user_id, role_id, create_time
+        FROM sys_user_role
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectByRoleId" resultMap="UserRoleMap">
+        SELECT id, user_id, role_id, create_time
+        FROM sys_user_role
+        WHERE role_id = #{roleId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.usermanagement.entity.UserRole" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user_role (user_id, role_id, create_time)
+        VALUES (#{userId}, #{roleId}, NOW())
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO sys_user_role (user_id, role_id, create_time)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId}, NOW())
+        </foreach>
+    </insert>
+
+    <delete id="deleteByUserId">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByRoleId">
+        DELETE FROM sys_user_role WHERE role_id = #{roleId}
+    </delete>
+
+    <delete id="deleteByUserIdAndRoleIds">
+        DELETE FROM sys_user_role
+        WHERE user_id = #{userId} AND role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+</mapper>

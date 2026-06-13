@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usermanagement.mapper.PermissionMapper">
+
+    <resultMap id="PermissionMap" type="com.example.usermanagement.entity.Permission">
+        <id property="id" column="id"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="description" column="description"/>
+        <result property="type" column="type"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, permission_name, permission_code, description, type, parent_id, sort_order, status, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="PermissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByPermissionCode" resultMap="PermissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE permission_code = #{permissionCode}
+    </select>
+
+    <select id="selectAll" resultMap="PermissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="selectByRoleId" resultMap="PermissionMap">
+        SELECT DISTINCT p.id, p.permission_name, p.permission_code, p.description, p.type, p.parent_id, p.sort_order, p.status, p.create_time, p.update_time
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+        ORDER BY p.sort_order ASC, p.id ASC
+    </select>
+
+    <select id="selectByUserId" resultMap="PermissionMap">
+        SELECT DISTINCT p.id, p.permission_name, p.permission_code, p.description, p.type, p.parent_id, p.sort_order, p.status, p.create_time, p.update_time
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
+        INNER JOIN sys_user_role ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY p.sort_order ASC, p.id ASC
+    </select>
+
+    <select id="selectByParentId" resultMap="PermissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE parent_id = #{parentId}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <insert id="insert" parameterType="com.example.usermanagement.entity.Permission" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_permission (permission_name, permission_code, description, type, parent_id, sort_order, status, create_time, update_time)
+        VALUES (#{permissionName}, #{permissionCode}, #{description}, #{type, jdbcType=INTEGER},
+                #{parentId, jdbcType=INTEGER}, #{sortOrder, jdbcType=INTEGER}, #{status, jdbcType=INTEGER}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.usermanagement.entity.Permission">
+        UPDATE sys_permission
+        <set>
+            <if test="permissionName != null">permission_name = #{permissionName},</if>
+            <if test="permissionCode != null">permission_code = #{permissionCode},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_permission WHERE id = #{id}
+    </delete>
+</mapper>

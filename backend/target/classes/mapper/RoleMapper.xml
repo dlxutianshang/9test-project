@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usermanagement.mapper.RoleMapper">
+
+    <resultMap id="RoleMap" type="com.example.usermanagement.entity.Role">
+        <id property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, role_name, role_code, description, status, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="RoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByRoleCode" resultMap="RoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role
+        WHERE role_code = #{roleCode}
+    </select>
+
+    <select id="selectList" resultMap="RoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                AND role_code LIKE CONCAT('%', #{roleCode}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and pageSize != null">
+            LIMIT #{offset}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="long">
+        SELECT COUNT(1)
+        FROM sys_role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                AND role_code LIKE CONCAT('%', #{roleCode}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByUserId" resultMap="RoleMap">
+        SELECT r.id, r.role_name, r.role_code, r.description, r.status, r.create_time, r.update_time
+        FROM sys_role r
+        INNER JOIN sys_user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.usermanagement.entity.Role" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_role (role_name, role_code, description, status, create_time, update_time)
+        VALUES (#{roleName}, #{roleCode}, #{description}, #{status, jdbcType=INTEGER}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.usermanagement.entity.Role">
+        UPDATE sys_role
+        <set>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="roleCode != null">role_code = #{roleCode},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_role WHERE id = #{id}
+    </delete>
+</mapper>
