@@ -23,4 +23,6 @@ public interface PostService {
     void deletePosts(List<Long> ids);
 
     boolean checkPostHasUsers(Long id);
+
+    byte[] exportPosts(PostQueryDTO queryDTO);
 }

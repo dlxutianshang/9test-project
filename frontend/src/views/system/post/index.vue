@@ -38,7 +38,7 @@
           @click="handleBatchDelete">
           <el-icon><Delete /></el-icon>删除
         </el-button>
-        <el-button type="warning" @click="handleExport">
+        <el-button type="warning" @click="handleExport" :loading="exporting">
           <el-icon><Download /></el-icon>导出
         </el-button>
       </div>
@@ -52,9 +52,8 @@
         <el-table-column prop="sortOrder" label="岗位排序" width="100" align="center" />
         <el-table-column label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'primary' : 'info'" effect="light">
-              {{ row.status === 1 ? '正常' : '停用' }}
-            </el-tag>
+            <el-tag v-if="row.status === 1" type="primary" effect="light">正常</el-tag>
+            <el-tag v-else type="info" effect="plain" style="background-color:#f0f0f0;color:#909399;border-color:#dcdfe6;">停用</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="创建时间" width="200" align="center">
@@ -91,7 +90,7 @@
           <el-input v-model="formData.id" disabled />
         </el-form-item>
         <el-form-item label="岗位编码" prop="postCode">
-          <el-input v-model="formData.postCode" :disabled="isEdit && editPostCodeDisabled" placeholder="请输入岗位编码" maxlength="50" show-word-limit />
+          <el-input v-model="formData.postCode" placeholder="请输入岗位编码" maxlength="50" show-word-limit />
         </el-form-item>
         <el-form-item label="岗位名称" prop="postName">
           <el-input v-model="formData.postName" placeholder="请输入岗位名称" maxlength="50" show-word-limit />
@@ -118,15 +117,15 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPostPage, createPost, updatePost, deletePost, deletePosts, checkPostHasUsers } from '@/api/post'
+import { getPostPage, createPost, updatePost, deletePost, deletePosts, checkPostHasUsers, exportPosts } from '@/api/post'
 
 const userStore = useUserStore()
 
 const loading = ref(false)
 const submitting = ref(false)
+const exporting = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const editPostCodeDisabled = ref(false)
 const formRef = ref(null)
 const tableData = ref([])
 const selectedRows = ref([])
@@ -174,6 +173,12 @@ const formatDateTime = (dateTime) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
+const padNum = (n) => n.toString().padStart(2, '0')
+const formatFileName = () => {
+  const d = new Date()
+  return `岗位管理_${d.getFullYear()}${padNum(d.getMonth() + 1)}${padNum(d.getDate())}_${padNum(d.getHours())}${padNum(d.getMinutes())}${padNum(d.getSeconds())}.xlsx`
+}
+
 const loadData = async () => {
   loading.value = true
   try {
@@ -198,15 +203,13 @@ const handleSelectionChange = (rows) => { selectedRows.value = rows }
 
 const handleAdd = () => {
   isEdit.value = false
-  editPostCodeDisabled.value = false
   Object.assign(formData, { id: null, postCode: '', postName: '', sortOrder: 0, status: 1 })
   dialogVisible.value = true
 }
 
 const handleEdit = (row) => {
   isEdit.value = true
-  editPostCodeDisabled.value = false
-  Object.assign(formData, row)
+  Object.assign(formData, JSON.parse(JSON.stringify(row)))
   dialogVisible.value = true
 }
 
@@ -278,25 +281,21 @@ const handleBatchDelete = async () => {
   }
 }
 
-const handleExport = () => {
-  const headers = ['岗位编号', '岗位编码', '岗位名称', '岗位排序', '状态', '创建时间']
-  const rows = tableData.value.map(row => [
-    row.id,
-    row.postCode,
-    row.postName,
-    row.sortOrder,
-    row.status === 1 ? '正常' : '停用',
-    formatDateTime(row.createTime)
-  ])
-  const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n')
-  const BOM = '\uFEFF'
-  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `岗位数据_${new Date().toISOString().slice(0, 10)}.csv`
-  link.click()
-  URL.revokeObjectURL(link.href)
-  ElMessage.success('导出成功')
+const handleExport = async () => {
+  exporting.value = true
+  try {
+    const params = { ...searchForm }
+    const res = await exportPosts(params)
+    const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = formatFileName()
+    link.click()
+    URL.revokeObjectURL(link.href)
+    ElMessage.success('导出成功')
+  } catch (e) {} finally {
+    exporting.value = false
+  }
 }
 
 onMounted(() => {

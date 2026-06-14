@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -85,5 +86,18 @@ public class PostController {
     @PreAuthorize("hasAuthority('post:list')")
     public Result<Boolean> checkPostHasUsers(@PathVariable Long id) {
         return Result.success(postService.checkPostHasUsers(id));
+    }
+
+    @ApiOperation("导出岗位数据")
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('post:list')")
+    @OperationLogAnnotation(operation = "导出岗位数据")
+    public void exportPosts(PostQueryDTO queryDTO, HttpServletResponse response) throws Exception {
+        byte[] data = postService.exportPosts(queryDTO);
+        String fileName = "岗位管理_" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment;filename=" + new String(fileName.getBytes("UTF-8"), "ISO-8859-1"));
+        response.getOutputStream().write(data);
+        response.getOutputStream().flush();
     }
 }

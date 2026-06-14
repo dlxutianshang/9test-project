@@ -89,7 +89,7 @@
     <select id="selectAll" resultMap="PostMap">
         SELECT <include refid="Base_Column_List"/>
         FROM sys_post
-        WHERE deleted = 0
+        WHERE deleted = 0 AND status = 1
         ORDER BY sort_order ASC, create_time ASC
     </select>
 

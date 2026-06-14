@@ -7,10 +7,14 @@ import com.example.usermanagement.exception.BusinessException;
 import com.example.usermanagement.mapper.PostMapper;
 import com.example.usermanagement.mapper.UserPostMapper;
 import com.example.usermanagement.service.PostService;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -21,6 +25,8 @@ public class PostServiceImpl implements PostService {
 
     @Resource
     private UserPostMapper userPostMapper;
+
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public Post getById(Long id) {
@@ -128,5 +134,37 @@ public class PostServiceImpl implements PostService {
     @Override
     public boolean checkPostHasUsers(Long id) {
         return userPostMapper.countByPostId(id) > 0;
+    }
+
+    @Override
+    public byte[] exportPosts(PostQueryDTO queryDTO) {
+        List<Post> list = postMapper.selectList(queryDTO);
+        try (Workbook wb = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = wb.createSheet("岗位数据");
+            String[] headers = {"岗位编号", "岗位编码", "岗位名称", "岗位排序", "状态", "创建时间"};
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+            int rowNum = 1;
+            for (Post p : list) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(p.getId() == null ? "" : p.getId().toString());
+                row.createCell(1).setCellValue(p.getPostCode() == null ? "" : p.getPostCode());
+                row.createCell(2).setCellValue(p.getPostName() == null ? "" : p.getPostName());
+                row.createCell(3).setCellValue(p.getSortOrder() == null ? 0 : p.getSortOrder());
+                row.createCell(4).setCellValue(p.getStatus() != null && p.getStatus() == 1 ? "正常" : "停用");
+                row.createCell(5).setCellValue(p.getCreateTime() == null ? "" : p.getCreateTime().format(DTF));
+            }
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            wb.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new BusinessException("导出失败");
+        }
     }
 }

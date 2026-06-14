@@ -59,3 +59,12 @@ export function checkPostHasUsers(id) {
     method: 'get'
   })
 }
+
+export function exportPosts(params) {
+  return request({
+    url: '/api/posts/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
