@@ -35,6 +35,16 @@
           <template #title>权限管理</template>
         </el-menu-item>
 
+        <el-menu-item index="/departments" v-if="userStore.checkPermission('dept:list') || userStore.checkPermission('dept:manage')">
+          <el-icon><OfficeBuilding /></el-icon>
+          <template #title>部门管理</template>
+        </el-menu-item>
+
+        <el-menu-item index="/posts" v-if="userStore.checkPermission('post:list') || userStore.checkPermission('post:manage')">
+          <el-icon><Briefcase /></el-icon>
+          <template #title>岗位管理</template>
+        </el-menu-item>
+
         <el-menu-item index="/logs" v-if="userStore.checkPermission('log:list') || userStore.checkPermission('log:manage')">
           <el-icon><Document /></el-icon>
           <template #title>操作日志</template>
