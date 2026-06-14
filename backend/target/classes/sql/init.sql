@@ -108,6 +108,30 @@ CREATE TABLE sys_password_reset (
     INDEX idx_reset_token (reset_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='密码重置表';
 
+DROP TABLE IF EXISTS sys_post;
+CREATE TABLE sys_post (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '岗位ID',
+    post_code VARCHAR(50) NOT NULL UNIQUE COMMENT '岗位编码',
+    post_name VARCHAR(50) NOT NULL COMMENT '岗位名称',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-停用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_post_code (post_code),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='岗位表';
+
+DROP TABLE IF EXISTS sys_user_post;
+CREATE TABLE sys_user_post (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    post_id BIGINT NOT NULL COMMENT '岗位ID',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE KEY uk_user_post (user_id, post_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_post_id (post_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户岗位关联表';
+
 INSERT INTO sys_user (username, password, nickname, email, phone, status) VALUES
 ('admin', '$2a$10$KY1.wVVdBtmTirfBEPkAPeFwkLzN5OipEMP48uk/BdR1LsgKvbS3.', '超级管理员', 'admin@example.com', '13800138000', 1),
 ('test', '$2a$10$KY1.wVVdBtmTirfBEPkAPeFwkLzN5OipEMP48uk/BdR1LsgKvbS3.', '测试用户', 'test@example.com', '13900139000', 1);
@@ -128,6 +152,17 @@ INSERT INTO sys_department (dept_name, parent_id, ancestors, sort_order, status)
 ('财务部门', 2, '0,1,2', 2, 1),
 ('北京分公司', 1, '0,1', 1, 1),
 ('行政部', 9, '0,1,9', 0, 1);
+
+INSERT INTO sys_post (post_code, post_name, sort_order, status) VALUES
+('ceo', '董事长', 1, 1),
+('gm', '总经理', 2, 1),
+('vp', '副总经理', 3, 1),
+('pm', '项目经理', 4, 1),
+('hr', '人力资源', 5, 1),
+('se', '软件工程师', 6, 1),
+('qa', '测试工程师', 7, 1),
+('fd', '前端开发', 8, 1),
+('bd', '后端开发', 9, 1);
 
 INSERT INTO sys_permission (permission_name, permission_code, description, type, parent_id, sort_order, status) VALUES
 ('用户管理', 'user:manage', '用户管理菜单', 1, 0, 1, 1),
@@ -153,8 +188,13 @@ INSERT INTO sys_permission (permission_name, permission_code, description, type,
 ('新增部门', 'dept:add', '新增部门', 2, 19, 2, 1),
 ('编辑部门', 'dept:edit', '编辑部门', 2, 19, 3, 1),
 ('删除部门', 'dept:delete', '删除部门', 2, 19, 4, 1),
+('岗位管理', 'post:manage', '岗位管理菜单', 1, 0, 2, 1),
+('岗位列表', 'post:list', '查看岗位列表', 2, 24, 1, 1),
+('新增岗位', 'post:add', '新增岗位', 2, 24, 2, 1),
+('编辑岗位', 'post:edit', '编辑岗位', 2, 24, 3, 1),
+('删除岗位', 'post:delete', '删除岗位', 2, 24, 4, 1),
 ('操作日志', 'log:manage', '操作日志菜单', 1, 0, 5, 1),
-('日志列表', 'log:list', '查看日志列表', 2, 24, 1, 1),
+('日志列表', 'log:list', '查看日志列表', 2, 29, 1, 1),
 ('数据导出', 'export:data', '导出数据', 2, 0, 6, 1),
 ('数据导入', 'import:data', '导入数据', 2, 0, 7, 1);
 
@@ -167,10 +207,12 @@ INSERT INTO sys_role_permission (role_id, permission_id) VALUES
 (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13),
 (1, 14), (1, 15), (1, 16), (1, 17), (1, 18),
 (1, 19), (1, 20), (1, 21), (1, 22), (1, 23),
-(1, 24), (1, 25), (1, 26), (1, 27),
+(1, 24), (1, 25), (1, 26), (1, 27), (1, 28),
+(1, 29), (1, 30), (1, 31), (1, 32), (1, 33),
 (2, 1), (2, 2),
 (2, 8), (2, 9),
 (2, 14), (2, 15),
 (2, 19), (2, 20),
 (2, 24), (2, 25),
-(3, 2), (3, 9), (3, 15), (3, 20), (3, 25);
+(2, 29), (2, 30),
+(3, 2), (3, 9), (3, 15), (3, 20), (3, 25), (3, 30);

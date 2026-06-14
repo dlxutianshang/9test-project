@@ -55,6 +55,12 @@ const routes = [
         meta: { title: '部门管理', icon: 'OfficeBuilding', permission: 'dept:manage' }
       },
       {
+        path: 'posts',
+        name: 'PostManagement',
+        component: () => import('@/views/system/post/index.vue'),
+        meta: { title: '岗位管理', icon: 'Briefcase', permission: 'post:manage' }
+      },
+      {
         path: 'logs',
         name: 'OperationLogs',
         component: () => import('@/views/system/log/index.vue'),

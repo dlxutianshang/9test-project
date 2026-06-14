@@ -1,12 +1,17 @@
+com\example\usermanagement\config\PasswordEncoderConfig.class
 com\example\usermanagement\entity\OperationLog.class
 com\example\usermanagement\service\OperationLogService.class
 com\example\usermanagement\controller\PermissionController.class
+com\example\usermanagement\service\PostService.class
 com\example\usermanagement\entity\Role.class
+com\example\usermanagement\service\impl\PostServiceImpl.class
 com\example\usermanagement\mapper\PermissionMapper.class
 com\example\usermanagement\mapper\PasswordResetMapper.class
 com\example\usermanagement\entity\UserRole.class
 com\example\usermanagement\service\PermissionService.class
 com\example\usermanagement\service\impl\RoleServiceImpl.class
+com\example\usermanagement\mapper\UserPostMapper.class
+com\example\usermanagement\dto\DepartmentQueryDTO.class
 com\example\usermanagement\entity\User.class
 com\example\usermanagement\common\StatusCode.class
 com\example\usermanagement\service\impl\UserServiceImpl.class
@@ -15,8 +20,12 @@ com\example\usermanagement\controller\RoleController.class
 com\example\usermanagement\common\PageResult.class
 com\example\usermanagement\dto\PasswordUpdateDTO.class
 com\example\usermanagement\service\impl\PermissionServiceImpl.class
+com\example\usermanagement\controller\DepartmentController.class
+com\example\usermanagement\controller\PostController.class
 com\example\usermanagement\config\RedisConfig.class
+com\example\usermanagement\entity\Post.class
 com\example\usermanagement\filter\JwtAuthenticationFilter.class
+com\example\usermanagement\dto\PostQueryDTO.class
 com\example\usermanagement\entity\Permission.class
 com\example\usermanagement\mapper\UserMapper.class
 com\example\usermanagement\UserManagementApplication.class
@@ -28,9 +37,11 @@ com\example\usermanagement\annotation\OperationLogAnnotation.class
 com\example\usermanagement\config\SecurityConfig.class
 com\example\usermanagement\common\Result.class
 com\example\usermanagement\entity\RolePermission.class
+com\example\usermanagement\entity\Department.class
 com\example\usermanagement\dto\LoginDTO.class
 com\example\usermanagement\controller\UserController.class
 com\example\usermanagement\exception\BusinessException.class
+com\example\usermanagement\mapper\PostMapper.class
 com\example\usermanagement\exception\GlobalExceptionHandler.class
 com\example\usermanagement\dto\UserQueryDTO.class
 com\example\usermanagement\config\JwtConfig.class
@@ -38,6 +49,7 @@ com\example\usermanagement\controller\AuthController.class
 com\example\usermanagement\mapper\OperationLogMapper.class
 com\example\usermanagement\aspect\OperationLogAspect.class
 com\example\usermanagement\service\impl\OperationLogServiceImpl.class
+com\example\usermanagement\service\DepartmentService.class
 com\example\usermanagement\mapper\RoleMapper.class
 com\example\usermanagement\dto\AssignRoleDTO.class
 com\example\usermanagement\config\WebMvcConfig.class
@@ -47,3 +59,5 @@ com\example\usermanagement\service\RoleService.class
 com\example\usermanagement\dto\PasswordResetDTO.class
 com\example\usermanagement\dto\RegisterDTO.class
 com\example\usermanagement\entity\PasswordReset.class
+com\example\usermanagement\service\impl\DepartmentServiceImpl.class
+com\example\usermanagement\mapper\DepartmentMapper.class
