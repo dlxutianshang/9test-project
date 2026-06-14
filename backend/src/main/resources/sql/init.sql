@@ -29,6 +29,20 @@ CREATE TABLE sys_role (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
+DROP TABLE IF EXISTS sys_department;
+CREATE TABLE sys_department (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '部门ID',
+    dept_name VARCHAR(50) NOT NULL COMMENT '部门名称',
+    parent_id BIGINT DEFAULT 0 COMMENT '父级部门ID',
+    ancestors VARCHAR(500) DEFAULT '' COMMENT '祖级列表（逗号分隔）',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-停用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_parent_id (parent_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
+
 DROP TABLE IF EXISTS sys_permission;
 CREATE TABLE sys_permission (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '权限ID',
@@ -103,6 +117,18 @@ INSERT INTO sys_role (role_name, role_code, description, status) VALUES
 ('普通用户', 'ROLE_USER', '普通用户权限', 1),
 ('访客', 'ROLE_GUEST', '只读权限', 1);
 
+INSERT INTO sys_department (dept_name, parent_id, ancestors, sort_order, status) VALUES
+('若依科技', 0, '0', 0, 1),
+('深圳总公司', 1, '0,1', 0, 1),
+('研发部门', 2, '0,1,2', 0, 1),
+('前端组', 3, '0,1,2,3', 0, 1),
+('后端组', 3, '0,1,2,3', 1, 1),
+('测试组', 3, '0,1,2,3', 2, 1),
+('市场部门', 2, '0,1,2', 1, 1),
+('财务部门', 2, '0,1,2', 2, 1),
+('北京分公司', 1, '0,1', 1, 1),
+('行政部', 9, '0,1,9', 0, 1);
+
 INSERT INTO sys_permission (permission_name, permission_code, description, type, parent_id, sort_order, status) VALUES
 ('用户管理', 'user:manage', '用户管理菜单', 1, 0, 1, 1),
 ('用户列表', 'user:list', '查看用户列表', 2, 1, 1, 1),
@@ -111,21 +137,26 @@ INSERT INTO sys_permission (permission_name, permission_code, description, type,
 ('删除用户', 'user:delete', '删除用户', 2, 1, 4, 1),
 ('用户状态', 'user:status', '启用/禁用用户', 2, 1, 5, 1),
 ('重置密码', 'user:resetPassword', '重置用户密码', 2, 1, 6, 1),
-('角色管理', 'role:manage', '角色管理菜单', 1, 0, 2, 1),
+('角色管理', 'role:manage', '角色管理菜单', 1, 0, 3, 1),
 ('角色列表', 'role:list', '查看角色列表', 2, 8, 1, 1),
 ('新增角色', 'role:add', '新增角色', 2, 8, 2, 1),
 ('编辑角色', 'role:edit', '编辑角色', 2, 8, 3, 1),
 ('删除角色', 'role:delete', '删除角色', 2, 8, 4, 1),
 ('分配权限', 'role:assignPermission', '分配权限给角色', 2, 8, 5, 1),
-('权限管理', 'permission:manage', '权限管理菜单', 1, 0, 3, 1),
+('权限管理', 'permission:manage', '权限管理菜单', 1, 0, 4, 1),
 ('权限列表', 'permission:list', '查看权限列表', 2, 14, 1, 1),
 ('新增权限', 'permission:add', '新增权限', 2, 14, 2, 1),
 ('编辑权限', 'permission:edit', '编辑权限', 2, 14, 3, 1),
 ('删除权限', 'permission:delete', '删除权限', 2, 14, 4, 1),
-('操作日志', 'log:manage', '操作日志菜单', 1, 0, 4, 1),
-('日志列表', 'log:list', '查看日志列表', 2, 19, 1, 1),
-('数据导出', 'export:data', '导出数据', 2, 0, 5, 1),
-('数据导入', 'import:data', '导入数据', 2, 0, 6, 1);
+('部门管理', 'dept:manage', '部门管理菜单', 1, 0, 2, 1),
+('部门列表', 'dept:list', '查看部门列表', 2, 19, 1, 1),
+('新增部门', 'dept:add', '新增部门', 2, 19, 2, 1),
+('编辑部门', 'dept:edit', '编辑部门', 2, 19, 3, 1),
+('删除部门', 'dept:delete', '删除部门', 2, 19, 4, 1),
+('操作日志', 'log:manage', '操作日志菜单', 1, 0, 5, 1),
+('日志列表', 'log:list', '查看日志列表', 2, 24, 1, 1),
+('数据导出', 'export:data', '导出数据', 2, 0, 6, 1),
+('数据导入', 'import:data', '导入数据', 2, 0, 7, 1);
 
 INSERT INTO sys_user_role (user_id, role_id) VALUES
 (1, 1),
@@ -135,9 +166,11 @@ INSERT INTO sys_role_permission (role_id, permission_id) VALUES
 (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7),
 (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13),
 (1, 14), (1, 15), (1, 16), (1, 17), (1, 18),
-(1, 19), (1, 20), (1, 21), (1, 22),
+(1, 19), (1, 20), (1, 21), (1, 22), (1, 23),
+(1, 24), (1, 25), (1, 26), (1, 27),
 (2, 1), (2, 2),
 (2, 8), (2, 9),
 (2, 14), (2, 15),
 (2, 19), (2, 20),
-(3, 2), (3, 9), (3, 15), (3, 20);
+(2, 24), (2, 25),
+(3, 2), (3, 9), (3, 15), (3, 20), (3, 25);

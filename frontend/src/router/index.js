@@ -49,6 +49,12 @@ const routes = [
         meta: { title: '权限管理', icon: 'Lock', permission: 'permission:manage' }
       },
       {
+        path: 'departments',
+        name: 'DepartmentManagement',
+        component: () => import('@/views/system/department/index.vue'),
+        meta: { title: '部门管理', icon: 'OfficeBuilding', permission: 'dept:manage' }
+      },
+      {
         path: 'logs',
         name: 'OperationLogs',
         component: () => import('@/views/system/log/index.vue'),
