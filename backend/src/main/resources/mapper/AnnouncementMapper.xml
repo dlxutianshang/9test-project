@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usermanagement.mapper.AnnouncementMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.usermanagement.entity.Announcement">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, title, content, type, status, creator, create_time, update_time, deleted
+    </sql>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM announcement
+        WHERE deleted = 0
+        <if test="query.title != null and query.title != ''">
+            AND title LIKE CONCAT('%', #{query.title}, '%')
+        </if>
+        <if test="query.creator != null and query.creator != ''">
+            AND creator LIKE CONCAT('%', #{query.creator}, '%')
+        </if>
+        <if test="query.type != null and query.type != ''">
+            AND type = #{query.type}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="long">
+        SELECT COUNT(*)
+        FROM announcement
+        WHERE deleted = 0
+        <if test="query.title != null and query.title != ''">
+            AND title LIKE CONCAT('%', #{query.title}, '%')
+        </if>
+        <if test="query.creator != null and query.creator != ''">
+            AND creator LIKE CONCAT('%', #{query.creator}, '%')
+        </if>
+        <if test="query.type != null and query.type != ''">
+            AND type = #{query.type}
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM announcement
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.usermanagement.entity.Announcement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO announcement (title, content, type, status, creator, create_time, update_time, deleted)
+        VALUES (#{title}, #{content}, #{type}, #{status}, #{creator}, #{createTime}, #{updateTime}, 0)
+    </insert>
+
+    <update id="update" parameterType="com.example.usermanagement.entity.Announcement">
+        UPDATE announcement
+        SET title = #{title},
+            content = #{content},
+            type = #{type},
+            status = #{status},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteById">
+        UPDATE announcement SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="selectReadUsers" resultType="string">
+        SELECT username FROM user WHERE id IN (
+            SELECT user_id FROM announcement_read WHERE announcement_id = #{id}
+        )
+    </select>
+</mapper>
