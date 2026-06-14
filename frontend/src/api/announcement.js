@@ -44,3 +44,18 @@ export function deleteAnnouncement(id) {
     method: 'delete'
   })
 }
+
+export function deleteAnnouncements(data) {
+  return request({
+    url: '/api/announcements/batch',
+    method: 'delete',
+    data
+  })
+}
+
+export function checkHasReadUsers(id) {
+  return request({
+    url: `/api/announcements/${id}/has-read-users`,
+    method: 'get'
+  })
+}

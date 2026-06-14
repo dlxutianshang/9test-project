@@ -24,5 +24,13 @@ public interface AnnouncementMapper {
 
     int deleteById(@Param("id") Long id);
 
+    int deleteByIds(@Param("ids") List<Long> ids);
+
+    int deleteReadRecords(@Param("id") Long id);
+
+    int deleteReadRecordsByIds(@Param("ids") List<Long> ids);
+
+    int selectReadUserCount(@Param("id") Long id);
+
     List<String> selectReadUsers(@Param("id") Long id);
 }

@@ -18,5 +18,9 @@ public interface AnnouncementService {
 
     void deleteAnnouncement(Long id);
 
+    void deleteAnnouncements(List<Long> ids);
+
+    boolean hasReadUsers(Long id);
+
     List<String> getReadUsers(Long id);
 }

@@ -28,9 +28,12 @@
     <div class="table-container">
       <div class="toolbar">
         <el-button type="primary" v-if="userStore.checkPermission('announcement:add')" @click="handleAdd">新增公告</el-button>
+        <el-button type="primary" v-if="userStore.checkPermission('announcement:edit')" :disabled="selectedRows.length !== 1" @click="handleEditSelected">修改</el-button>
+        <el-button type="danger" v-if="userStore.checkPermission('announcement:delete')" :disabled="selectedRows.length === 0" @click="handleBatchDelete">删除</el-button>
       </div>
 
-      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%">
+      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="50" align="center" />
         <el-table-column type="index" label="序号" width="60" align="center" :index="indexMethod" />
         <el-table-column prop="title" label="公告标题" min-width="200">
           <template #default="{ row }">
@@ -97,6 +100,12 @@
         <el-form-item label="公告内容" prop="content">
           <el-input v-model="formData.content" type="textarea" :rows="8" placeholder="请输入公告内容" />
         </el-form-item>
+        <el-form-item label="创建者" v-if="isEdit">
+          <el-input v-model="formData.creator" disabled />
+        </el-form-item>
+        <el-form-item label="创建时间" v-if="isEdit">
+          <el-input :model-value="formatDate(formData.createTime)" disabled />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -135,7 +144,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getAnnouncementPage, getAnnouncementById, getReadUsers, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '@/api/announcement'
+import { getAnnouncementPage, getAnnouncementById, getReadUsers, createAnnouncement, updateAnnouncement, deleteAnnouncement, deleteAnnouncements, checkHasReadUsers } from '@/api/announcement'
 
 const userStore = useUserStore()
 
@@ -147,6 +156,7 @@ const detailVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref(null)
 const tableData = ref([])
+const selectedRows = ref([])
 const readUsers = ref([])
 const detailData = ref({})
 
@@ -214,6 +224,8 @@ const handleReset = () => {
 const handlePageChange = (val) => { pagination.pageNum = val; loadData() }
 const handleSizeChange = (val) => { pagination.pageSize = val; pagination.pageNum = 1; loadData() }
 
+const handleSelectionChange = (rows) => { selectedRows.value = rows }
+
 const handleAdd = () => {
   isEdit.value = false
   Object.assign(formData, { id: null, title: '', content: '', type: 'notice', status: 1 })
@@ -226,6 +238,12 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
+const handleEditSelected = () => {
+  if (selectedRows.value.length === 1) {
+    handleEdit(selectedRows.value[0])
+  }
+}
+
 const handleDialogClose = () => { formRef.value?.resetFields() }
 
 const handleSubmit = async () => {
@@ -234,6 +252,19 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
     if (isEdit.value) {
+      const hasRes = await checkHasReadUsers(formData.id)
+      if (hasRes.data === true) {
+        try {
+          await ElMessageBox.confirm('该公告已被部分用户阅读，修改后将同步更新给所有用户', '提示', {
+            confirmButtonText: '继续修改',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+        } catch (_) {
+          submitting.value = false
+          return
+        }
+      }
       await updateAnnouncement(formData.id, formData)
       ElMessage.success('更新成功')
     } else {
@@ -247,10 +278,23 @@ const handleSubmit = async () => {
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确认删除该公告吗？删除后不可恢复', '删除确认', {
+    await ElMessageBox.confirm('确认删除选中的公告吗？删除后不可恢复，且已读记录将一并清除', '删除确认', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
     await deleteAnnouncement(row.id)
+    ElMessage.success('删除成功')
+    loadData()
+  } catch (e) {}
+}
+
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) return
+  try {
+    await ElMessageBox.confirm('确认删除选中的公告吗？删除后不可恢复，且已读记录将一并清除', '删除确认', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+    })
+    const ids = selectedRows.value.map(row => row.id)
+    await deleteAnnouncements(ids)
     ElMessage.success('删除成功')
     loadData()
   } catch (e) {}

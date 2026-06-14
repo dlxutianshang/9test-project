@@ -45,6 +45,13 @@ public class AnnouncementController {
         return Result.success(announcementService.getReadUsers(id));
     }
 
+    @ApiOperation("检查公告是否已被阅读")
+    @GetMapping("/{id}/has-read-users")
+    @PreAuthorize("hasAuthority('announcement:list')")
+    public Result<Boolean> hasReadUsers(@PathVariable Long id) {
+        return Result.success(announcementService.hasReadUsers(id));
+    }
+
     @ApiOperation("新增公告")
     @PostMapping
     @PreAuthorize("hasAuthority('announcement:add')")
@@ -68,6 +75,15 @@ public class AnnouncementController {
     @OperationLogAnnotation(operation = "删除公告")
     public Result<Void> deleteAnnouncement(@PathVariable Long id) {
         announcementService.deleteAnnouncement(id);
+        return Result.success("删除成功", null);
+    }
+
+    @ApiOperation("批量删除公告")
+    @DeleteMapping("/batch")
+    @PreAuthorize("hasAuthority('announcement:delete')")
+    @OperationLogAnnotation(operation = "批量删除公告")
+    public Result<Void> deleteAnnouncements(@RequestBody List<Long> ids) {
+        announcementService.deleteAnnouncements(ids);
         return Result.success("删除成功", null);
     }
 }

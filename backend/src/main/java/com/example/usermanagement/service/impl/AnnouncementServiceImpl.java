@@ -49,7 +49,19 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     public void deleteAnnouncement(Long id) {
+        announcementMapper.deleteReadRecords(id);
         announcementMapper.deleteById(id);
+    }
+
+    @Override
+    public void deleteAnnouncements(List<Long> ids) {
+        announcementMapper.deleteReadRecordsByIds(ids);
+        announcementMapper.deleteByIds(ids);
+    }
+
+    @Override
+    public boolean hasReadUsers(Long id) {
+        return announcementMapper.selectReadUserCount(id) > 0;
     }
 
     @Override
