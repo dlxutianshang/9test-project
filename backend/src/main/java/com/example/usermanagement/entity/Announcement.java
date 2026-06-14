@@ -15,7 +15,7 @@ public class Announcement implements Serializable {
     private Long id;
 
     @NotBlank(message = "公告标题不能为空")
-    @Size(max = 200, message = "公告标题最多200个字符")
+    @Size(max = 100, message = "公告标题最多100个字符")
     private String title;
 
     private String content;

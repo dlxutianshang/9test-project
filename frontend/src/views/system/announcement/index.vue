@@ -80,13 +80,13 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px" @close="handleDialogClose">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
         <el-form-item label="公告标题" prop="title">
-          <el-input v-model="formData.title" placeholder="请输入公告标题" maxlength="200" show-word-limit />
+          <el-input v-model="formData.title" placeholder="请输入公告标题" maxlength="100" show-word-limit />
         </el-form-item>
         <el-form-item label="公告类型" prop="type">
-          <el-radio-group v-model="formData.type">
-            <el-radio label="notice">通知</el-radio>
-            <el-radio label="announcement">公告</el-radio>
-          </el-radio-group>
+          <el-select v-model="formData.type" placeholder="请选择公告类型" style="width: 100%;">
+            <el-option label="通知" value="notice" />
+            <el-option label="公告" value="announcement" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -175,9 +175,10 @@ const formData = reactive({
 const formRules = {
   title: [
     { required: true, message: '请输入公告标题', trigger: 'blur' },
-    { max: 200, message: '公告标题最多200个字符', trigger: 'blur' }
+    { max: 100, message: '公告标题最多100个字符', trigger: 'blur' }
   ],
   type: [{ required: true, message: '请选择公告类型', trigger: 'change' }],
+  content: [{ required: true, message: '请输入公告内容', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
 
