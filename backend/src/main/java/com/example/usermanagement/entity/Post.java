@@ -29,4 +29,6 @@ public class Post implements Serializable {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    private Integer deleted;
 }

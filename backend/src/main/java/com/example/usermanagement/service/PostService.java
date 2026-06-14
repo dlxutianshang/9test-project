@@ -21,4 +21,6 @@ public interface PostService {
     void deletePost(Long id);
 
     void deletePosts(List<Long> ids);
+
+    boolean checkPostHasUsers(Long id);
 }

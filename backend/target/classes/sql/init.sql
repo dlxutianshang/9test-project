@@ -117,6 +117,7 @@ CREATE TABLE sys_post (
     status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-停用',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted TINYINT DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除',
     INDEX idx_post_code (post_code),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='岗位表';

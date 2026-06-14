@@ -87,14 +87,17 @@
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="handleDialogClose">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
+        <el-form-item label="岗位编号" v-if="isEdit">
+          <el-input v-model="formData.id" disabled />
+        </el-form-item>
         <el-form-item label="岗位编码" prop="postCode">
-          <el-input v-model="formData.postCode" placeholder="请输入岗位编码" maxlength="50" show-word-limit />
+          <el-input v-model="formData.postCode" :disabled="isEdit && editPostCodeDisabled" placeholder="请输入岗位编码" maxlength="50" show-word-limit />
         </el-form-item>
         <el-form-item label="岗位名称" prop="postName">
           <el-input v-model="formData.postName" placeholder="请输入岗位名称" maxlength="50" show-word-limit />
         </el-form-item>
         <el-form-item label="岗位排序" prop="sortOrder">
-          <el-input-number v-model="formData.sortOrder" :min="0" :max="9999" controls-position="right" style="width: 100%" />
+          <el-input-number v-model="formData.sortOrder" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -115,7 +118,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPostPage, createPost, updatePost, deletePost, deletePosts } from '@/api/post'
+import { getPostPage, createPost, updatePost, deletePost, deletePosts, checkPostHasUsers } from '@/api/post'
 
 const userStore = useUserStore()
 
@@ -123,6 +126,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const editPostCodeDisabled = ref(false)
 const formRef = ref(null)
 const tableData = ref([])
 const selectedRows = ref([])
@@ -158,7 +162,7 @@ const formRules = {
     { required: true, message: '请输入岗位名称', trigger: 'blur' },
     { max: 50, message: '岗位名称最多50个字符', trigger: 'blur' }
   ],
-  sortOrder: [{ type: 'number', min: 0, max: 9999, message: '排序值范围0-9999', trigger: 'blur' }],
+  sortOrder: [{ type: 'number', min: 0, message: '排序值必须为非负整数', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
 
@@ -194,12 +198,14 @@ const handleSelectionChange = (rows) => { selectedRows.value = rows }
 
 const handleAdd = () => {
   isEdit.value = false
+  editPostCodeDisabled.value = false
   Object.assign(formData, { id: null, postCode: '', postName: '', sortOrder: 0, status: 1 })
   dialogVisible.value = true
 }
 
 const handleEdit = (row) => {
   isEdit.value = true
+  editPostCodeDisabled.value = false
   Object.assign(formData, row)
   dialogVisible.value = true
 }
@@ -218,6 +224,21 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
     if (isEdit.value) {
+      if (formData.status === 0) {
+        const hasRes = await checkPostHasUsers(formData.id)
+        if (hasRes.data === true) {
+          try {
+            await ElMessageBox.confirm('该岗位已分配用户，停用后将影响用户权限，是否继续？', '提示', {
+              confirmButtonText: '继续停用',
+              cancelButtonText: '取消',
+              type: 'warning'
+            })
+          } catch (_) {
+            submitting.value = false
+            return
+          }
+        }
+      }
       await updatePost(formData.id, formData)
       ElMessage.success('更新成功')
     } else {
@@ -231,7 +252,7 @@ const handleSubmit = async () => {
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确认删除岗位"${row.postName}"吗？`, '删除确认', {
+    await ElMessageBox.confirm('确认删除选中的岗位吗？删除后不可恢复', '删除确认', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
     await deletePost(row.id)
@@ -245,7 +266,7 @@ const handleDelete = async (row) => {
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) return
   try {
-    await ElMessageBox.confirm(`确认删除选中的${selectedRows.value.length}条岗位数据吗？`, '删除确认', {
+    await ElMessageBox.confirm('确认删除选中的岗位吗？删除后不可恢复', '删除确认', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
     const ids = selectedRows.value.map(row => row.id)

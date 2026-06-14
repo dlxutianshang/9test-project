@@ -43,9 +43,22 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Post createPost(Post post) {
-        Post exist = postMapper.selectByPostCode(post.getPostCode());
-        if (exist != null) {
+        if (post.getPostCode() == null || post.getPostCode().trim().isEmpty()) {
+            throw new BusinessException("岗位编码不能为空");
+        }
+        if (post.getPostName() == null || post.getPostName().trim().isEmpty()) {
+            throw new BusinessException("岗位名称不能为空");
+        }
+        if (post.getSortOrder() != null && post.getSortOrder() < 0) {
+            throw new BusinessException("岗位排序必须为非负整数");
+        }
+        Post existCode = postMapper.selectByPostCode(post.getPostCode());
+        if (existCode != null) {
             throw new BusinessException("岗位编码已存在");
+        }
+        Post existName = postMapper.selectByPostName(post.getPostName());
+        if (existName != null) {
+            throw new BusinessException("岗位名称已存在");
         }
         if (post.getSortOrder() == null) {
             post.setSortOrder(0);
@@ -64,11 +77,22 @@ public class PostServiceImpl implements PostService {
         if (exist == null) {
             throw new BusinessException("岗位不存在");
         }
-        if (post.getPostCode() != null && !post.getPostCode().equals(exist.getPostCode())) {
-            Post duplicate = postMapper.selectByPostCode(post.getPostCode());
-            if (duplicate != null && !duplicate.getId().equals(post.getId())) {
-                throw new BusinessException("岗位编码已存在");
-            }
+        if (post.getPostCode() == null || post.getPostCode().trim().isEmpty()) {
+            throw new BusinessException("岗位编码不能为空");
+        }
+        if (post.getPostName() == null || post.getPostName().trim().isEmpty()) {
+            throw new BusinessException("岗位名称不能为空");
+        }
+        if (post.getSortOrder() != null && post.getSortOrder() < 0) {
+            throw new BusinessException("岗位排序必须为非负整数");
+        }
+        Post duplicateCode = postMapper.selectByPostCodeExcludeId(post.getPostCode(), post.getId());
+        if (duplicateCode != null) {
+            throw new BusinessException("岗位编码已存在");
+        }
+        Post duplicateName = postMapper.selectByPostNameExcludeId(post.getPostName(), post.getId());
+        if (duplicateName != null) {
+            throw new BusinessException("岗位名称已存在");
         }
         postMapper.update(post);
         return postMapper.selectById(post.getId());
@@ -83,7 +107,7 @@ public class PostServiceImpl implements PostService {
         }
         int userCount = userPostMapper.countByPostId(id);
         if (userCount > 0) {
-            throw new BusinessException("该岗位已分配用户，无法删除");
+            throw new BusinessException("该岗位已分配用户，无法删除，请先解除用户分配");
         }
         postMapper.deleteById(id);
     }
@@ -96,8 +120,13 @@ public class PostServiceImpl implements PostService {
         }
         int userCount = userPostMapper.countByPostIds(ids);
         if (userCount > 0) {
-            throw new BusinessException("选中的岗位中存在已分配用户的岗位，无法删除");
+            throw new BusinessException("该岗位已分配用户，无法删除，请先解除用户分配");
         }
         postMapper.deleteByIds(ids);
+    }
+
+    @Override
+    public boolean checkPostHasUsers(Long id) {
+        return userPostMapper.countByPostId(id) > 0;
     }
 }

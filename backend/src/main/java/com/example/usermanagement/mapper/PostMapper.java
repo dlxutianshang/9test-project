@@ -12,6 +12,12 @@ public interface PostMapper {
 
     Post selectByPostCode(String postCode);
 
+    Post selectByPostName(String postName);
+
+    Post selectByPostCodeExcludeId(@Param("postCode") String postCode, @Param("id") Long id);
+
+    Post selectByPostNameExcludeId(@Param("postName") String postName, @Param("id") Long id);
+
     List<Post> selectList(PostQueryDTO queryDTO);
 
     Long selectCount(PostQueryDTO queryDTO);

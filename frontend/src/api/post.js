@@ -52,3 +52,10 @@ export function deletePosts(data) {
     data
   })
 }
+
+export function checkPostHasUsers(id) {
+  return request({
+    url: `/api/posts/${id}/has-users`,
+    method: 'get'
+  })
+}

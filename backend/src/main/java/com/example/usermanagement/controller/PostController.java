@@ -79,4 +79,11 @@ public class PostController {
         postService.deletePosts(ids);
         return Result.success("删除成功", null);
     }
+
+    @ApiOperation("检查岗位是否已分配用户")
+    @GetMapping("/{id}/has-users")
+    @PreAuthorize("hasAuthority('post:list')")
+    public Result<Boolean> checkPostHasUsers(@PathVariable Long id) {
+        return Result.success(postService.checkPostHasUsers(id));
+    }
 }
